@@ -3,7 +3,7 @@ using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 public class PlayerMovement : MonoBehaviour
 {
-	[SerializeField] private float forceMagnitude = 50f;
+	[SerializeField] private float forceMagnitude = 150f;
 	[SerializeField] private float maxVelocity = 6f;
 
 	private Camera _mainCamera;
@@ -17,6 +17,21 @@ public class PlayerMovement : MonoBehaviour
 	}
 
 	private void Update()
+	{
+		ProcessInput();
+		KeepPlayerOnScreen();
+	}
+
+	private void FixedUpdate()
+	{
+		if (_movementDirection == Vector3.zero)
+			return;
+		
+		_playerRigidbody.AddForce(_movementDirection * (forceMagnitude * Time.fixedDeltaTime), ForceMode.Force);
+		_playerRigidbody.velocity = Vector3.ClampMagnitude(_playerRigidbody.velocity, maxVelocity);
+	}
+
+	private void ProcessInput()
 	{
 		if (Touch.activeTouches.Count > 0)
 		{
@@ -32,12 +47,29 @@ public class PlayerMovement : MonoBehaviour
 		}
 	}
 
-	private void FixedUpdate()
+	private void KeepPlayerOnScreen()
 	{
-		if (_movementDirection == Vector3.zero)
-			return;
+		Vector3 newPosition = transform.position;
+
+		var viewportPoint = _mainCamera.WorldToViewportPoint(transform.position);
+		if (viewportPoint.x > 1f)
+		{
+			newPosition.x = -newPosition.x + 0.1f;
+		}
+		else if (viewportPoint.x < 0f)
+		{
+			newPosition.x = -newPosition.x - 0.1f;
+		}
 		
-		_playerRigidbody.AddForce(_movementDirection * (forceMagnitude * Time.fixedDeltaTime), ForceMode.Force);
-		_playerRigidbody.velocity = Vector3.ClampMagnitude(_playerRigidbody.velocity, maxVelocity);
+		if (viewportPoint.y > 1f)
+		{
+			newPosition.y = -newPosition.y + 0.1f;
+		}
+		else if (viewportPoint.y < 0f)
+		{
+			newPosition.y = -newPosition.y - 0.1f;
+		}
+		
+		transform.position = newPosition;
 	}
 }
