@@ -51,27 +51,24 @@ public class PlayerMovement : MonoBehaviour
 
 	private void KeepPlayerOnScreen()
 	{
-		Vector3 newPosition = transform.position;
+		var position = transform.position;
+		var newPosition = position;
 
-		var viewportPoint = _mainCamera.WorldToViewportPoint(transform.position);
-		if (viewportPoint.x > 1f)
+		var viewportPoint = _mainCamera.WorldToViewportPoint(position);
+		newPosition.x = viewportPoint.x switch
 		{
-			newPosition.x = -newPosition.x + 0.1f;
-		}
-		else if (viewportPoint.x < 0f)
+			> 1f => -newPosition.x + 0.1f,
+			< 0f => -newPosition.x - 0.1f,
+			_ => newPosition.x
+		};
+
+		newPosition.y = viewportPoint.y switch
 		{
-			newPosition.x = -newPosition.x - 0.1f;
-		}
-		
-		if (viewportPoint.y > 1f)
-		{
-			newPosition.y = -newPosition.y + 0.1f;
-		}
-		else if (viewportPoint.y < 0f)
-		{
-			newPosition.y = -newPosition.y - 0.1f;
-		}
-		
+			> 1f => -newPosition.y + 0.1f,
+			< 0f => -newPosition.y - 0.1f,
+			_ => newPosition.y
+		};
+
 		transform.position = newPosition;
 	}
 
@@ -82,6 +79,5 @@ public class PlayerMovement : MonoBehaviour
 		
 		var targetRotation = Quaternion.LookRotation(_playerRigidbody.velocity, Vector3.back);
 		transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-
 	}
 }
